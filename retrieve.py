@@ -2,21 +2,51 @@ from bs4 import BeautifulSoup
 import re
 import cloudscraper
 
-scraper = cloudscraper.create_scraper()
+
+scraper = cloudscraper.create_scraper() # returns a CloudScraper instance
 
 baseURL = 'https://readcomiconline.to'
 
-def retrieve(name):
-    url = baseURL + '/Search/Comic/' + name
-    search_page = scraper.get(url)
-
+def web_scraper(url):
+    search_page = scraper.get(url)  # sends a GET request to the page
     soup = BeautifulSoup(search_page.content,'html.parser')
-    id = soup.find(id='container')
-    titles = id.find_all('a',href=re.compile('/Comic/.*'))
+    div_id = soup.find(id='container') # finds the id:container
+    return div_id
 
-    for i in enumerate(titles):
-        if 'Issue' not in i[1].text:
-            print((i[1].text.strip()))
+class retrieve:
+    def __init__(self, title):
+        self.title = title
 
-k = retrieve('star wars')
+    def title(self):
+        name_list = []
+
+        url = baseURL + '/Search/Comic/' + self.title()
+
+        data = web_scraper(url)
+
+        titles = data.find_all('a',href = re.compile('/Comic/.*')) # finds all the <a> tag where the href starts with /Comic/
+
+        for name in enumerate(titles):
+            if 'Issue' not in name[1].text: # Issue nos. were appearing as comic titles
+                name_list.append(name[1].text.strip())
+        return name_list
+
+    def thumbnail(self):
+        thumb_list=[]
+
+        url = baseURL + '/Search/Comic/' + self.title()
+
+        data = web_scraper(url)
+        tags = data.find_all('td') # img tag is contained in an atr of <td>
+
+        for src in tags:
+            if 'img' in str(src):
+                thumb_list.append(str(src).split('style')[0].split('src="')[1].rstrip('" ')) # extracting the url from the mess
+        for thumb_url in enumerate(thumb_list):
+            thumb_list[thumb_url[0]] = baseURL + thumb_list[thumb_url[0]]
+
+        return thumb_list
+
+
+k = retrieve.thumbnail('joker')
 print(k)
