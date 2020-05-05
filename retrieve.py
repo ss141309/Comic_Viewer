@@ -47,6 +47,25 @@ class retrieve:
 
         return thumb_list
 
+    def desc(self):
+        desc_list = []
 
-k = retrieve.thumbnail('joker')
+        url = baseURL + '/Search/Comic/' + self.title()
+
+        data = web_scraper(url)
+        tags = data.find_all('td')
+
+        for p in tags:
+            if 'img' in str(p):
+                desc_list.append(str(p).split('&lt;p&gt;')[1].split('&lt;/p&gt;')[0].strip())
+
+        return desc_list
+
+
+
+k = retrieve.title('joker')
+l = retrieve.thumbnail('joker')
+m = retrieve.desc('joker')
 print(k)
+print(l)
+print(m)
