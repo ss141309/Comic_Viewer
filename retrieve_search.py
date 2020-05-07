@@ -45,7 +45,8 @@ class retrieve:
             if 'img' in str(src):
                 thumb_list.append(str(src).split('style')[0].split('src="')[1].rstrip('" ')) # extracting the url from the mess
         for thumb_url in enumerate(thumb_list):
-            thumb_list[thumb_url[0]] = baseURL + thumb_list[thumb_url[0]]
+            if 'blogspot' not in thumb_url[1]: # some links are not from readcomicsonline.to
+                thumb_list[thumb_url[0]] = baseURL + thumb_list[thumb_url[0]]
 
         return thumb_list
 
@@ -62,5 +63,3 @@ class retrieve:
                 desc_list.append(str(p).split('&lt;p&gt;')[1].split('&lt;/p&gt;')[0].strip())
 
         return desc_list
-k = retrieve.thumbnail('joker')
-dwnld_batch(k, r'C:\Users\Sameer\Desktop\Comic_Viewer\img\thumbnail')

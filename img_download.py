@@ -1,8 +1,10 @@
 import cloudscraper
 import shutil
+from time import sleep
+
 scraper = cloudscraper.create_scraper()
 
-def img_dwnld(image_url, dirname):
+def img_dwnld(image_url, dirname): # credit of https://www.dev2qa.com/how-to-download-image-file-from-url-use-python-requests-or-wget-module/
     filename = image_url.split("/")[-1]
 
     # Open the url image, set stream to True, this will return the stream content.
@@ -20,4 +22,4 @@ def img_dwnld(image_url, dirname):
 
 def dwnld_batch(img_url_list, dirname):
     for img in img_url_list:
-        img_dwnld(img, dirname)
+            img_dwnld(img, dirname)
