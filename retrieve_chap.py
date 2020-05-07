@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import re
-import cloudscraper
 from img_download import dwnld_batch
 import retrieve_search
+
 
 baseURL = 'https://readcomiconline.to/Comic/'
 
@@ -20,17 +20,76 @@ class retrieve_info:
     def __init__(self, title):
         self.title = title
 
-    def publisher(self):
+    def info(self):
+        global publish
+        global write
+        global art
+        global url
+        global data
 
         url = baseURL + self.title()
 
         data = retrieve_search.web_scraper(url)
 
-        publisher = data.find_all('p')
+        p = data.find_all('p')
 
-        for pub in publisher:
-            print(str(pub.text).split('\n'))
+        for inf in p:
+            if 'Publisher' in str(inf):
+                publish = inf.text
 
-m = urlify('Wolverine Annual 2 Bloodlust')
-k = retrieve_info.publisher(m)
+            if 'Writer' in str(inf):
+                write = inf.text
+
+            if 'Artist' in str(inf):
+                art = inf.text
+
+    def publisher(self):
+        retrieve_info.info(self)
+
+        publ = publish.split('Publisher:')[1].strip()
+
+        return publ
+
+    def author(self):
+        retrieve_info.info(self)
+
+        writ = write.split('Writer:')[1].strip()
+
+        return writ
+
+    def artist(self):
+        retrieve_info.info(self)
+
+        arti = art.split('Artist:')[1].strip()
+
+        return arti
+
+    def chap(self):
+        global chap_dict
+
+        chapter_no = []
+        chapter_link = []
+        retrieve_info.info(self)
+
+        a = data.find_all('a', href = re.compile('/Comic/.*'), title = re.compile('.*'))
+
+        for ele in a:
+            chapter_no.append(ele.text.strip())
+            chapter_link.append('www.readcomiconline.to' + str(ele).split('href=')[1].split(' title')[0].strip('\"'))
+
+        chap_dict = dict(zip(chapter_link, chapter_no))
+
+        return chap_dict
+
+    def chap_img(self):
+        chap_img_list = []
+
+        url = 'https://readcomiconline.to/Comic/Ultimate-Comics-X-Men/Issue-33?id=60395'
+        data1 = retrieve_search.web_scraper(url)
+
+        script = data1.find_all('a')
+        print(script)
+
+m = urlify('Ultimate Comics X men')
+k = retrieve_info.chap_img('https://readcomiconline.to/Comic/Ultimate-Comics-X-Men/Issue-33?id=60395')
 print(k)
