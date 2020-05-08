@@ -12,7 +12,7 @@ def web_scraper(url):
 
     soup = BeautifulSoup(search_page.content,'html.parser')
 
-    div_id = soup.find(id='container') # finds the id:container
+    div_id = soup.find(id = 'container') # finds the id
     return div_id
 
 class retrieve:
@@ -31,6 +31,7 @@ class retrieve:
         for name in enumerate(titles):
             if 'Issue' not in name[1].text: # Issue nos. were appearing as comic titles
                 name_list.append(name[1].text.strip())
+
         return name_list
 
     def thumbnail(self):
@@ -44,6 +45,7 @@ class retrieve:
         for src in tags:
             if 'img' in str(src):
                 thumb_list.append(str(src).split('style')[0].split('src="')[1].rstrip('" ')) # extracting the url from the mess
+
         for thumb_url in enumerate(thumb_list):
             if 'blogspot' not in thumb_url[1]: # some links are not from readcomicsonline.to
                 thumb_list[thumb_url[0]] = baseURL + thumb_list[thumb_url[0]]

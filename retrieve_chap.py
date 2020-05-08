@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 import re
 from img_download import dwnld_batch
 import retrieve_search
+import cloudscraper
+from collections import OrderedDict
+
+scraper = cloudscraper.create_scraper()
 
 
 baseURL = 'https://readcomiconline.to/Comic/'
@@ -75,7 +79,7 @@ class retrieve_info:
 
         for ele in a:
             chapter_no.append(ele.text.strip())
-            chapter_link.append('www.readcomiconline.to' + str(ele).split('href=')[1].split(' title')[0].strip('\"'))
+            chapter_link.append('https://www.readcomiconline.to' + str(ele).split('href=')[1].split(' title')[0].strip('\"'))
 
         chap_dict = dict(zip(chapter_link, chapter_no))
 
@@ -84,12 +88,18 @@ class retrieve_info:
     def chap_img(self):
         chap_img_list = []
 
-        url = 'https://readcomiconline.to/Comic/Ultimate-Comics-X-Men/Issue-33?id=60395'
-        data1 = retrieve_search.web_scraper(url)
+        url = self.title()
+        search_page = scraper.get(url)  # sends a GET request to the page
 
-        script = data1.find_all('a')
-        print(script)
+        soup = BeautifulSoup(search_page.content,'html.parser')
 
-m = urlify('Ultimate Comics X men')
-k = retrieve_info.chap_img('https://readcomiconline.to/Comic/Ultimate-Comics-X-Men/Issue-33?id=60395')
-print(k)
+        scripts = soup.find_all('script')
+
+        for script in scripts:
+            if 'lstImages.push' in str(script):
+                k = (str(script).split('\n'))
+                for img_url in enumerate(k):
+                    if 'lstImages.push' in img_url[1]:
+                        chap_img_list.append('http'+img_url[1].lstrip('        lstImages.push("').rstrip('");\r'))
+
+        return chap_img_list
