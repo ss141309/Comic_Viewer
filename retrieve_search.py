@@ -1,7 +1,5 @@
 from bs4 import BeautifulSoup
-import re
 import cloudscraper
-from img_download import dwnld_batch
 
 scraper = cloudscraper.create_scraper() # returns a CloudScraper instance
 
@@ -15,53 +13,28 @@ def web_scraper(url):
     div_id = soup.find(id = 'container') # finds the id
     return div_id
 
-class retrieve:
-    def __init__(self, title):
-        self.title = title
+def info(self):
+    thumb_list=[]
 
-    def title(self):
-        name_list = []
+    url = baseURL + '/Search/Comic/' + self.title()
 
-        url = baseURL + '/Search/Comic/' + self.title()
+    data = web_scraper(url)
+    tags = data.find_all('td') # img tag is contained in an atr of <td>
+    for src in tags:
+        try: # some elements did'nt had the 'title' atr
+            l = []
 
-        data = web_scraper(url)
+            soup = BeautifulSoup(src['title'], 'html.parser')
 
-        titles = data.find_all('a',href = re.compile('/Comic/.*')) # finds all the <a> tag where the href starts with /Comic/
+            img = soup.find('img')
+            p = soup.find('p')
+            a = soup.find('a')
 
-        for name in enumerate(titles):
-            if 'Issue' not in name[1].text: # Issue nos. were appearing as comic titles
-                name_list.append(name[1].text.strip())
+            if 'blogspot' not in img: # some links are not from readcomicsonline.to
+                img = baseURL + img['src']
 
-        return name_list
-
-    def thumbnail(self):
-        thumb_list=[]
-
-        url = baseURL + '/Search/Comic/' + self.title()
-
-        data = web_scraper(url)
-        tags = data.find_all('td') # img tag is contained in an atr of <td>
-
-        for src in tags:
-            if 'img' in str(src):
-                thumb_list.append(str(src).split('style')[0].split('src="')[1].rstrip('" ')) # extracting the url from the mess
-
-        for thumb_url in enumerate(thumb_list):
-            if 'blogspot' not in thumb_url[1]: # some links are not from readcomicsonline.to
-                thumb_list[thumb_url[0]] = baseURL + thumb_list[thumb_url[0]]
-
-        return thumb_list
-
-    def desc(self):
-        desc_list = []
-
-        url = baseURL + '/Search/Comic/' + self.title()
-
-        data = web_scraper(url)
-        tags = data.find_all('td')
-
-        for p in tags:
-            if 'img' in str(p):
-                desc_list.append(str(p).split('&lt;p&gt;')[1].split('&lt;/p&gt;')[0].strip())
-
-        return desc_list
+            l=[img, p.text.strip(), baseURL+a['href'], a.text]
+            thumb_list.append(l)
+        except:
+            continue
+    return thumb_list
