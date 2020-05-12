@@ -20,9 +20,10 @@ def info(self):
 
     data = web_scraper(url)
     tags = data.find_all('td') # img tag is contained in an atr of <td>
+
     for src in tags:
         try: # some elements did'nt had the 'title' atr
-            l = []
+            nes_lis = []
 
             soup = BeautifulSoup(src['title'], 'html.parser')
 
@@ -33,8 +34,9 @@ def info(self):
             if 'blogspot' not in img: # some links are not from readcomicsonline.to
                 img = baseURL + img['src']
 
-            l=[img, p.text.strip(), baseURL+a['href'], a.text]
-            thumb_list.append(l)
+            nes_lis = [img, p.text.strip(), baseURL + a['href'], a.text]
+            thumb_list.append(nes_lis)
+
         except:
             continue
     return thumb_list
