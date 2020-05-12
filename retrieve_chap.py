@@ -1,91 +1,70 @@
 from bs4 import BeautifulSoup
 import re
-from img_download import dwnld_batch
-import retrieve_search
+from retrieve_search import *
 import cloudscraper
-from collections import OrderedDict
+
 
 scraper = cloudscraper.create_scraper()
 
 
-baseURL = 'https://readcomiconline.to/Comic/'
+baseURL = 'https://readcomiconline.to'
 
-def urlify(s): # credit of https://stackoverflow.com/questions/1007481/how-do-i-replace-whitespaces-with-underscore-and-vice-versa
-
-    # Remove all non-word characters (everything except numbers and letters)
-    s = re.sub(r"[^\w\s]", '', s)
-
-    # Replace all runs of whitespace with a single dash
-    s = re.sub(r"\s+", '-', s)
-
-    return s
+def urlify(s):
+    d = ''
+    for i in s:
+        if i.isalnum() == True:
+            d += i
+        else:
+            d += '-'
+    d = d.replace('--','-')
+    return d
 
 class retrieve_info:
     def __init__(self, title):
         self.title = title
 
     def info(self):
-        global publish
-        global write
-        global art
-        global url
         global data
+        global url
+        info = []
+        url = baseURL + '/Comic/' + self.title()
 
-        url = baseURL + self.title()
 
-        data = retrieve_search.web_scraper(url)
+        data = web_scraper(url)
 
         p = data.find_all('p')
 
         for inf in p:
-            if 'Publisher' in str(inf):
-                publish = inf.text
+            if 'Publisher' in str(inf) or 'Writer' in str(inf) or 'Artist' in str(inf) or 'Summary' in str(inf) or 'Publication' in str(inf):
+                info.append(inf.text.strip())
 
-            if 'Writer' in str(inf):
-                write = inf.text
+        info = list(set(info)) # set() removes duplicate element from a list but the order is lost
 
-            if 'Artist' in str(inf):
-                art = inf.text
+        return info
 
-    def publisher(self):
-        retrieve_info.info(self)
-
-        publ = publish.split('Publisher:')[1].strip()
-
-        return publ
-
-    def author(self):
-        retrieve_info.info(self)
-
-        writ = write.split('Writer:')[1].strip()
-
-        return writ
-
-    def artist(self):
-        retrieve_info.info(self)
-
-        arti = art.split('Artist:')[1].strip()
-
-        return arti
 
     def chap(self):
-        global chap_dict
 
         chapter_no = []
         chapter_link = []
+
         retrieve_info.info(self)
+        div_class = data.find_all('div',class_='barContent')
+        div_class = div_class[1]
 
-        a = data.find_all('a', href = re.compile('/Comic/.*'), title = re.compile('.*'))
-
+        a = div_class.find_all('a')
+        
         for ele in a:
-            chapter_no.append(ele.text.strip())
-            chapter_link.append('https://www.readcomiconline.to' + str(ele).split('href=')[1].split(' title')[0].strip('\"'))
+            if '/RSS/' not in str(ele): # to remove the RSS link
+                chapter_link.append(baseURL + ele['href'].strip())
+                chapter_no.append(ele.text.strip())
 
         chap_dict = dict(zip(chapter_link, chapter_no))
 
         return chap_dict
 
     def chap_img(self):
+
         chap_img_list = []
 
         url = self.title()
@@ -98,8 +77,8 @@ class retrieve_info:
         for script in scripts:
             if 'lstImages.push' in str(script):
                 k = (str(script).split('\n'))
-                for img_url in enumerate(k):
-                    if 'lstImages.push' in img_url[1]:
-                        chap_img_list.append('http'+img_url[1].lstrip('        lstImages.push("').rstrip('");\r'))
+                for img_url in k:
+                    if 'lstImages.push' in img_url:
+                        chap_img_list.append('http'+img_url.lstrip('        lstImages.push("').rstrip('");\r'))
 
         return chap_img_list
