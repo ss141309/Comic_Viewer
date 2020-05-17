@@ -7,17 +7,8 @@ import cloudscraper
 scraper = cloudscraper.create_scraper()
 
 
-baseURL = 'https://readcomiconline.to'
+baseURL = 'https://readeleonline.to'
 
-def urlify(s):
-    d = ''
-    for i in s:
-        if i.isalnum() == True:
-            d += i
-        else:
-            d += '-'
-    d = d.replace('--','-')
-    return d
 
 class retrieve_info:
     def __init__(self, title):
@@ -26,8 +17,11 @@ class retrieve_info:
     def info(self):
         global data
         global url
+        global info_list
+
+        info_dict = {}
         info = []
-        url = baseURL + '/Comic/' + self.title()
+        url = self.title()
 
 
         data = web_scraper(url)
@@ -38,9 +32,9 @@ class retrieve_info:
             if 'Publisher' in str(inf) or 'Writer' in str(inf) or 'Artist' in str(inf) or 'Summary' in str(inf) or 'Publication' in str(inf):
                 info.append(inf.text.strip())
 
-        info = list(set(info)) # set() removes duplicate element from a list but the order is lost
+        info_list = list(set(info)) # set() removes duplicate element from a list but the order is lost
 
-        return info
+        return info_list
 
 
     def chap(self):
@@ -49,11 +43,11 @@ class retrieve_info:
         chapter_link = []
 
         retrieve_info.info(self)
-        div_class = data.find_all('div',class_='barContent')
+        div_class = data.find_all('div',class_ = 'barContent')
         div_class = div_class[1]
 
         a = div_class.find_all('a')
-        
+
         for ele in a:
             if '/RSS/' not in str(ele): # to remove the RSS link
                 chapter_link.append(baseURL + ele['href'].strip())
@@ -82,3 +76,5 @@ class retrieve_info:
                         chap_img_list.append('http'+img_url.lstrip('        lstImages.push("').rstrip('");\r'))
 
         return chap_img_list
+k = retrieve_info.info('https://readcomiconline.to/Comic/Popular-Skullture-The-Skull-Motif-in-Pulps-Paperbacks-and-Comics')
+print(k)
