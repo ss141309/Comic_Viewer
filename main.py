@@ -1,46 +1,76 @@
-from retrieve_search import retrieve
-from prettytable import PrettyTable
-import retrieve_chap
-import img_download
+from retrieve_search import info
+from retrieve_chap import retrieve_info
+from makedir import *
+from img_download import dwnld_batch
+import table
+import sqlite3
 
-k = input('Search')
-l = retrieve.title(k)
-m = retrieve.desc(k)
+import re
+import os
 
-x = PrettyTable()
-x.field_names = ['S. No.', 'Title']
-for search in enumerate(l):
-        x.add_row([search[0]+1, search[1]])
+class tables:
+    def download(self, name):
+        self.conn = sqlite3.connect('comic.db')
+        table.search()
+        table.search_dupl()
+        self.name = name
+        find = info(self.name)
+        id_no=1
+        self.conn.execute('DELETE FROM SEARCH_DUPL')
+        for i in find:
+            self.conn.execute('INSERT INTO SEARCH (ID, TITLE, IMG_URL, URL, SUMMARY) VALUES (?, ?, ?, ?, ?)',(id_no, i[-1], i[0], i[-2], i[1]))
+            self.conn.execute('INSERT INTO SEARCH_DUPL (ID, TITLE, IMG_URL, URL, SUMMARY) VALUES (?, ?, ?, ?, ?)',(id_no, i[-1], i[0], i[-2], i[1]))
+            id_no+=1
+        self.conn.commit()
+        self.conn.close()
 
-print(x)
 
-ask = int(input('Enter serial number'))
-chap = l[ask-1]
-chap = retrieve_chap.urlify(chap)
-publisher = retrieve_chap.retrieve_info.publisher(chap)
-writer = retrieve_chap.retrieve_info.author(chap)
-artist = retrieve_chap.retrieve_info.artist(chap)
-chapters = retrieve_chap.retrieve_info.chap(chap)
+    def add_info(self, url):
+        self.conn = sqlite3.connect('comic.db')
+        table.chapters()
+        self.url = url
+        k = retrieve_info.info(self.url)
 
-y = PrettyTable()
-y.field_names = ['Title', 'Publisher', 'Author', 'Artist']
-y.add_row([chap, publisher, writer, artist])
-print(y)
+        publisher = k[0].split('Publisher:')[1]
+        writer = k[1].split('Writer:')[1]
+        artist = k[2].split('Artist:')[1]
+        pub_date = k[3].split('Publication date:')[1]
 
-z = PrettyTable()
-z.field_names = ['S. No.', 'Title']
-l2 = list(chapters.values())
-del l2[0]
-l2 = l2[::-1]
-for j in enumerate(l2):
-    z.add_row([j[0]+1, j[1]])
-print(z)
+        self.conn.execute('''UPDATE SEARCH SET PUBLISHER = ?, WRITER = ?, ARTIST = ?, PUBLICATION_DATE = ?
+                        WHERE URL = ?''',
+                        (publisher, writer, artist, pub_date, self.url))
+        self.conn.execute('''UPDATE SEARCH_DUPL SET PUBLISHER = ?, WRITER = ?, ARTIST = ?, PUBLICATION_DATE = ?
+                        WHERE URL = ?''',
+                        (publisher, writer, artist, pub_date, self.url))
+        self.conn.commit()
 
-view = int(input('Select serial number'))
-l3 = list(chapters.keys())
-l3 = l3[::-1]
-ok = l3[view-1]
+    def chaps(self, url, title):
+        self.conn = sqlite3.connect('comic.db')
+        self.url = url
+        self.title = title
+        chapters = retrieve_info.chap(self.url)
 
-ko = retrieve_chap.retrieve_info.chap_img(ok)
+        chapters_val = list(chapters.keys())
+        chapters_val2 = list(chapters.values())
+        chapters_val = chapters_val[::-1]
+        chapters_val2 = chapters_val2[::-1]
+        for j in range(len(chapters_val)):
+            self.conn.execute('INSERT INTO CHAPTERS VALUES (?, ?, ?)', (chapters_val[j], self.title, chapters_val2[j]))
+        self.conn.commit()
+        self.conn.close()
+    def download_chap(self, url, comic_name, chptr_name):
+        table.downloaded()
+        table.download_chapters()
 
-img_download.dwnld_batch(ko,r'C:\Users\Sameer\Desktop\Comic_Viewer\img\star')
+        self.url = url
+        self.comic_name = comic_name
+        self.chptr_name = chptr_name
+
+        dw = retrieve_info.chap_img(self.url)
+
+        dic = re.sub('[^a-zA-Z0-9 \n\.]', '', self.comic_name)
+        dic2 = re.sub('[^a-zA-Z0-9 \n\.]', '', self.chptr_name)
+
+        d = os.path.abspath('img'+'/'+dic+'/'+dic2)
+        mkdirs(d)
+        dwnld_batch(dw, d)
