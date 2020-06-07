@@ -6,7 +6,8 @@ scraper = cloudscraper.create_scraper() # returns a CloudScraper instance
 baseURL = 'https://readcomiconline.to'
 
 def web_scraper(url):
-    search_page = scraper.get(url)  # sends a GET request to the page
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:77.0) Gecko/20190101 Firefox/77.0'}
+    search_page = scraper.get(url, headers = headers)  # sends a GET request to the page
 
     soup = BeautifulSoup(search_page.content,'html.parser')
 
