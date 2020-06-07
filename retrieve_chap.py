@@ -1,13 +1,13 @@
 from bs4 import BeautifulSoup
-import re
 from retrieve_search import *
 import cloudscraper
+from collections import OrderedDict
 
 
 scraper = cloudscraper.create_scraper()
 
 
-baseURL = 'https://readeleonline.to'
+baseURL = 'https://readcomiconline.to'
 
 
 class retrieve_info:
@@ -19,22 +19,18 @@ class retrieve_info:
         global url
         global info_list
 
-        info_dict = {}
         info = []
         url = self.title()
-
 
         data = web_scraper(url)
 
         p = data.find_all('p')
 
         for inf in p:
-            if 'Publisher' in str(inf) or 'Writer' in str(inf) or 'Artist' in str(inf) or 'Summary' in str(inf) or 'Publication' in str(inf):
+            if 'Publisher' in str(inf) or 'Writer' in str(inf) or 'Artist' in str(inf) or 'Publication' in str(inf):
                 info.append(inf.text.strip())
 
-        info_list = list(set(info)) # set() removes duplicate element from a list but the order is lost
-
-        return info_list
+        return info
 
 
     def chap(self):
@@ -62,7 +58,8 @@ class retrieve_info:
         chap_img_list = []
 
         url = self.title()
-        search_page = scraper.get(url)  # sends a GET request to the page
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:77.0) Gecko/20190101 Firefox/77.0'}
+        search_page = scraper.get(url, headers = headers)  # sends a GET request to the page
 
         soup = BeautifulSoup(search_page.content,'html.parser')
 
@@ -76,5 +73,3 @@ class retrieve_info:
                         chap_img_list.append('http'+img_url.lstrip('        lstImages.push("').rstrip('");\r'))
 
         return chap_img_list
-k = retrieve_info.info('https://readcomiconline.to/Comic/Popular-Skullture-The-Skull-Motif-in-Pulps-Paperbacks-and-Comics')
-print(k)
