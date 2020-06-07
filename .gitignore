@@ -1,3 +1,7 @@
 /sqlite/
 /img/
 /__pycache__/
+/sqlite3/
+/aspolo/
+/gui/
+__init.py__
