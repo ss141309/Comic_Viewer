@@ -30,6 +30,8 @@ class comic_ui(QMainWindow):
         self.search()
         self.info()
         self.conn()
+        self.downloaded_table()
+
 
     def table(self):
         self.tabs_wid = QTabWidget()
@@ -232,6 +234,8 @@ class comic_ui(QMainWindow):
         self.forward2.clicked.connect(lambda : self.btn_was_clicked(1, self.stack_layout2))
         self.back2.clicked.connect(lambda : self.btn_was_clicked(0, self.stack_layout2))
 
+        self.table3.cellDoubleClicked.connect(self.cell3_was_clicked)
+
 
     def btn_was_clicked(self, index, lay_out):
         lay_out.setCurrentIndex(index)
@@ -324,11 +328,69 @@ class comic_ui(QMainWindow):
         cur.execute('SELECT * FROM CHAPTERS WHERE rowid = ?', (self.row+1,))
         chptr_url = cur.fetchall()
         cur.execute('INSERT INTO DOWNLOADED_CHAPTERS SELECT * FROM CHAPTERS WHERE CHAPTER_URL = ?', (chptr_url[0][0],))
-        cur.execute('INSERT INTO DOWNLOADED SELECT TITLE, PUBLISHER, WRITER, ARTIST, PUBLICATION_DATE, IMG_URL, URL, IMG_PATH, SUMMARY FROM SEARCH_DUPL WHERE TITLE = ?', (chptr_url[0][1],))
+        cur.execute('INSERT INTO DOWNLOADED (TITLE, PUBLISHER, WRITER, ARTIST, PUBLICATION_DATE, IMG_URL, URL, IMG_PATH, SUMMARY) SELECT TITLE, PUBLISHER, WRITER, ARTIST, PUBLICATION_DATE, IMG_URL, URL, IMG_PATH, SUMMARY FROM SEARCH_DUPL WHERE TITLE = ?', (chptr_url[0][1],))
         conn.commit()
+        cur.execute('SELECT * FROM DOWNLOADED')
+        self.data = cur.fetchall()
         conn.close()
         imgs.download_chap(chptr_url[0][0], chptr_url[0][1], chptr_url[0][2])
+        for i in enumerate(self.data):
+            d = 0
+            self.table3.setItem(i[0], d, QTableWidgetItem(str(i[1][0])))
+            item = QTableWidgetItem(i[1][1])
+            item.setTextAlignment(Qt.AlignCenter)
+            item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled) # set items not editable
+            self.table3.setItem(i[0], d+1, item)
+            d += i[0]
 
+    def cell3_was_clicked(self):
+        self.row = self.table3.currentRow()
+        self.conn = sqlite3.connect('comic.db')
+        self.cur = self.conn.cursor()
+        self.cur.execute('SELECT TITLE, PUBLISHER, WRITER, ARTIST, PUBLICATION_DATE, SUMMARY, IMG_URL FROM DOWNLOADED WHERE ID = ?', (str(self.row+1),))
+        self.addit = self.cur.fetchall()
+
+        self.label1_1.setText(self.addit[0][0])
+        self.label2_1.setText(self.addit[0][1])
+        self.label3_1.setText(self.addit[0][2])
+        self.label4_1.setText(self.addit[0][3])
+        self.label5_1.setText(self.addit[0][4])
+        self.label6_1.setText(self.addit[0][5])
+
+        self.cur.execute('SELECT IMG_PATH, TITLE FROM DOWNLOADED WHERE ID = ?', (str(self.row+1),))
+        img_path = self.cur.fetchall()
+        self.img(os.path.join(img_path[0][0]))
+
+        self.stack_layout2.setCurrentIndex(1)
+
+        self.cur.execute('SELECT CHAPTER_NAME FROM DOWNLOADED_CHAPTERS WHERE COMIC_NAME = ?', (img_path[0][1],))
+        chptrs = self.cur.fetchall()
+
+        for chptr in enumerate(chptrs):
+            d = 0
+            self.table4.setItem(chptr[0], d, QTableWidgetItem(str(chptr[0]+1)))
+            item = QTableWidgetItem(chptr[1][0])
+            item.setTextAlignment(Qt.AlignCenter)
+            item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled) # set items not editable
+            self.table4.setItem(chptr[0], d+1, item)
+            d += chptr[0]
+
+        self.conn.close()
+
+    def downloaded_table(self):
+        conn = sqlite3.connect('comic.db')
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM DOWNLOADED')
+        self.data = cur.fetchall()
+        conn.close()
+        for i in enumerate(self.data):
+            d = 0
+            self.table3.setItem(i[0], d, QTableWidgetItem(str(i[1][0])))
+            item = QTableWidgetItem(i[1][1])
+            item.setTextAlignment(Qt.AlignCenter)
+            item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled) # set items not editable
+            self.table3.setItem(i[0], d+1, item)
+            d += i[0]
 
 
 
@@ -336,10 +398,10 @@ def main():
     app = QApplication(sys.argv)
 
     view = comic_ui()
-    view.show()
-    #qtmodern.styles.dark(app)
-    #mw = qtmodern.windows.ModernWindow(view)
-    #mw.show()
+    #view.show()
+    qtmodern.styles.dark(app)
+    mw = qtmodern.windows.ModernWindow(view)
+    mw.show()
 
     sys.exit(app.exec_())
 

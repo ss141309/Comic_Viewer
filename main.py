@@ -13,6 +13,8 @@ class tables:
         self.conn = sqlite3.connect('comic.db')
         table.search()
         table.search_dupl()
+        table.downloaded()
+        table.download_chapters()
         self.name = name
         find = info(self.name)
         id_no=1
@@ -59,8 +61,6 @@ class tables:
         self.conn.commit()
         self.conn.close()
     def download_chap(self, url, comic_name, chptr_name):
-        table.downloaded()
-        table.download_chapters()
 
         self.url = url
         self.comic_name = comic_name

@@ -4,12 +4,12 @@ conn = sqlite3.connect('comic.db')
 def downloaded():
     conn = sqlite3.connect('comic.db')
     conn.execute('''CREATE TABLE IF NOT EXISTS DOWNLOADED
-                (ID INTEGER     AUTOINCREMENT PRIMARY KEY NOT NULL,
+                (ID INTEGER      PRIMARY KEY AUTOINCREMENT NOT NULL,
                 TITLE            TEXT NOT NULL,
                 PUBLISHER        TEXT,
                 WRITER           TEXT,
                 ARTIST           TEXT,
-                PUBLICATION DATE  INT,
+                PUBLICATION_DATE  INT,
                 IMG_URL          TEXT,
                 URL              TEXT,
                 IMG_PATH         TEXT,
@@ -28,7 +28,7 @@ def download_chapters():
 
 def search():
     conn = sqlite3.connect('comic.db')
-    conn.execute('''CREATE TABLE IF NOT EXISTS SEARCH
+    conn.execute('''CREATE  TABLE IF NOT EXISTS SEARCH
                 (ID             INTEGER PRIMARY KEY NOT NULL,
                 TITLE           TEXT,
                 PUBLISHER        TEXT,
@@ -44,7 +44,7 @@ def search():
 def search_dupl():
     conn = sqlite3.connect('comic.db')
     conn.execute('PRAGMA foreign_keys = ON')
-    conn.execute('''CREATE TABLE IF NOT EXISTS SEARCH_DUPL
+    conn.execute('''CREATE  TABLE IF NOT EXISTS SEARCH_DUPL
                 (ID             INTEGER PRIMARY KEY ,
                 TITLE           TEXT,
                 PUBLISHER        TEXT,
@@ -65,7 +65,7 @@ def search_dupl():
 
 def chapters():
     conn = sqlite3.connect('comic.db')
-    conn.execute('''CREATE TABLE IF NOT EXISTS CHAPTERS
+    conn.execute('''CREATE  TABLE IF NOT EXISTS CHAPTERS
                 (CHAPTER_URL TEXT,
                 COMIC_NAME   TEXT,
                 CHAPTER_NAME TEXT);''')
